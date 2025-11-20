@@ -40,40 +40,26 @@ export const analyzeCompensation = async (profile: UserProfile): Promise<Compens
 
   const totalComp = annualBaseSalary + annualIncentive + profitShare + annualOvertime + festival + pf + grat;
 
-  const benefitsStr = profile.benefits && profile.benefits.length > 0 ? profile.benefits.join(', ') : 'None listed';
-
   const prompt = `
-    Analyze the following professional profile for compensation benchmarking and career progression.
+    Act as an Expert Executive Headhunter and Senior Compensation Data Scientist. 
+    Analyze the following profile using REAL-TIME market data contexts for late 2024/2025.
     
-    Profile Details:
+    User Profile:
     - Role: ${profile.currentRole || 'Professional'}
     - Experience: ${safeNum(profile.yearsExperience)} years
-    - Location: ${profile.location || 'Unknown'}
+    - Location: ${profile.location || 'Unknown'} (Factor in cost of living and local market demand)
     - Industry: ${profile.industry || 'General'}
     - Currency: ${profile.currency || 'USD'}
     
-    Compensation Breakdown (Annualized):
-    - Base Salary (Annualized): ${annualBaseSalary}
-    - Incentive (Annualized): ${annualIncentive}
-    - Profit Share (Annual): ${profitShare}
-    - Overtime (Annualized): ${annualOvertime}
-    - Festival Bonus: ${festival}
-    - Provident Fund: ${pf}
-    - Gratuity: ${grat}
-    - Total Annual Package: ${totalComp}
-    
-    Benefits / Perks:
-    ${benefitsStr}
+    Total Annual Compensation: ${totalComp}
     
     TASK:
-    1. Evaluate if the Current Total Annual Package (${totalComp} ${profile.currency}) is fair for the role of "${profile.currentRole}" with ${profile.yearsExperience} years experience specifically in ${profile.location}.
-    2. Predict the NEXT likely role and the expected salary range for that NEXT role in ${profile.location}.
-    3. Provide negotiation scripts:
-       - "Why You Are Perfect": A persuasive script tailored to their experience level explaining why they are the ideal candidate.
-       - "Why You Are Asking This": A data-backed script justifying the specific salary increase or package they should ask for, referencing market rates and inflation.
-       - "Tips": Actionable, short tips for the negotiation meeting with HR.
+    1. ACCURATE MARKET ANALYSIS: Compare this user against the *actual* market rates. Be precise.
+    2. CAREER LADDER PREDICTION: Identify the exact next logical role. Not just a generic step, but the industry-standard promotion title.
+    3. CHECKLIST FOR SWITCHING: Generate 5 critical, specific things this user must check in their offer letter or interview for the NEXT role (e.g., specific benefits, remote policy, equity vesting, team structure) that people often forget.
+    4. NEGOTIATION SCRIPT: Create a data-backed argument for why they are ready for this next step.
     
-    Provide a strict JSON response.
+    Provide a strict JSON response conforming to the schema.
   `;
 
   try {
@@ -98,8 +84,8 @@ export const analyzeCompensation = async (profile: UserProfile): Promise<Compens
                   required: ["min", "median", "max"]
                 },
                 paymentStatus: { type: Type.STRING, enum: ["Underpaid", "Fair", "Highly Competitive"] },
-                percentile: { type: Type.NUMBER, description: "Estimated percentile of current pay vs market (0-100)" },
-                gapAnalysis: { type: Type.STRING, description: "A concise explanation of the salary gap based on location." }
+                percentile: { type: Type.NUMBER },
+                gapAnalysis: { type: Type.STRING }
               },
               required: ["currentRoleMarketValue", "paymentStatus", "percentile", "gapAnalysis"]
             },
@@ -107,8 +93,8 @@ export const analyzeCompensation = async (profile: UserProfile): Promise<Compens
               type: Type.OBJECT,
               properties: {
                 roleTitle: { type: Type.STRING },
-                timeframeYears: { type: Type.STRING, description: "e.g. '1-2 years'" },
-                probabilityScore: { type: Type.NUMBER, description: "0-100 confidence in this path" },
+                timeframeYears: { type: Type.STRING },
+                probabilityScore: { type: Type.NUMBER },
                 salaryRange: {
                     type: Type.OBJECT,
                     properties: {
@@ -121,24 +107,28 @@ export const analyzeCompensation = async (profile: UserProfile): Promise<Compens
                 requiredSkills: {
                   type: Type.ARRAY,
                   items: { type: Type.STRING }
+                },
+                switchChecklist: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                    description: "5 specific things to verify before accepting the next job offer"
                 }
               },
-              required: ["roleTitle", "timeframeYears", "probabilityScore", "salaryRange", "requiredSkills"]
+              required: ["roleTitle", "timeframeYears", "probabilityScore", "salaryRange", "requiredSkills", "switchChecklist"]
             },
             negotiation: {
               type: Type.OBJECT,
               properties: {
-                whyYouArePerfect: { type: Type.STRING, description: "Script explaining why the user is the perfect candidate." },
-                whyYouDeserveIt: { type: Type.STRING, description: "Script explaining why they are asking for this specific compensation." },
+                whyYouArePerfect: { type: Type.STRING },
+                whyYouDeserveIt: { type: Type.STRING },
                 tips: {
                   type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                  description: "3-4 short, bulleted actionable tips."
+                  items: { type: Type.STRING }
                 }
               },
               required: ["whyYouArePerfect", "whyYouDeserveIt", "tips"]
             },
-            verdictColor: { type: Type.STRING, description: "A hex color code representing the status (Red/Yellow/Green)" }
+            verdictColor: { type: Type.STRING }
           },
           required: ["marketAnalysis", "nextCareerMove", "negotiation", "verdictColor"]
         }

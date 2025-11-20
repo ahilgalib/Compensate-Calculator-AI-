@@ -28,6 +28,7 @@ export interface NextRolePrediction {
   probabilityScore: number;
   salaryRange: SalaryRange;
   requiredSkills: string[];
+  switchChecklist: string[]; // New field for job switch reminders
 }
 
 export interface MarketAnalysis {
