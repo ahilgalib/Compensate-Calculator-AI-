@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import SalaryForm from './components/SalaryForm';
 import ResultsDashboard from './components/ResultsDashboard';
 import LoadingScreen from './components/LoadingScreen';
@@ -10,6 +10,7 @@ const App: React.FC = () => {
   const [results, setResults] = useState<CompensationInsights | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const topRef = useRef<HTMLDivElement>(null);
 
   const handleAnalysis = async (profile: UserProfile) => {
     setIsLoading(true);
@@ -20,12 +21,19 @@ const App: React.FC = () => {
       const data = await analyzeCompensation(profile);
       if (data) {
         setResults(data);
+        topRef.current?.scrollIntoView({ behavior: 'smooth' });
       } else {
-        setError("Could not generate analysis. Please check your API Key or try again.");
+        setError("Could not generate analysis. Please try again.");
+        topRef.current?.scrollIntoView({ behavior: 'smooth' });
       }
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+    } catch (err: any) {
       console.error(err);
+      if (err.message === "MISSING_API_KEY") {
+        setError("API Key is missing. Please configure your Vercel/Environment variables with 'API_KEY'.");
+      } else {
+        setError("Analysis failed. Please check your internet connection and try again.");
+      }
+      topRef.current?.scrollIntoView({ behavior: 'smooth' });
     } finally {
       setIsLoading(false);
     }
@@ -35,12 +43,13 @@ const App: React.FC = () => {
     setResults(null);
     setUserProfile(null);
     setError(null);
+    topRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-slate-100 flex flex-col">
       {/* Minimal Navigation */}
-      <nav className="bg-white sticky top-0 z-50 py-6">
+      <nav ref={topRef} className="bg-white sticky top-0 z-50 py-6">
         <div className="max-w-5xl mx-auto px-6 flex justify-center">
             <div className="flex items-center space-x-3 cursor-pointer group" onClick={handleReset}>
               <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold shadow-md group-hover:scale-105 transition-transform">
@@ -77,8 +86,9 @@ const App: React.FC = () => {
           ) : (
             <div className="max-w-3xl mx-auto">
                {error && (
-                 <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium text-center">
-                    {error}
+                 <div className="mb-6 p-6 bg-red-50 text-red-600 rounded-2xl text-center border border-red-100 shadow-sm">
+                    <p className="font-bold mb-1">Analysis Error</p>
+                    <p className="text-sm">{error}</p>
                  </div>
                )}
                <SalaryForm onSubmit={handleAnalysis} isLoading={isLoading} />
