@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --port 3000 --host",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean-setup": "rm -rf node_modules package-lock.json && npm install"
   },
   "dependencies": {
     "@google/genai": "^0.1.2",
