@@ -29,39 +29,42 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     setStep('submitting');
     
-    const feedbackData = {
+    // Prepare payload
+    // Note: We only include the 'email' field if it is a valid string.
+    // Sending "Anonymous" in the email field causes Formspree to reject it as an invalid email address.
+    const payload: any = {
         rating,
-        // If email is empty, mark as Anonymous
-        email: email.trim() === '' ? "Anonymous User" : email, 
-        missingFields,
+        missing_fields: missingFields,
         improvements,
-        _subject: `New Feedback (${rating}/5 stars)`, // Subject line for your email
+        _subject: `New App Feedback (${rating}/5 stars)`,
     };
 
-    try {
-        // If the user hasn't set up the ID yet, we simulate success for the demo
-        if (FORMSPREE_FORM_ID === "YOUR_FORM_ID_HERE") {
-            console.warn("Please set your Formspree ID in FeedbackModal.tsx to receive emails.");
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Fake delay
-        } else {
-            const response = await fetch(`https://formspree.io/f/${FORMSPREE_FORM_ID}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(feedbackData)
-            });
+    if (email && email.trim().length > 0) {
+        payload.email = email.trim();
+    } else {
+        payload.sender_status = "Anonymous User";
+    }
 
-            if (!response.ok) {
-                throw new Error("Failed to send feedback");
-            }
+    try {
+        const response = await fetch(`https://formspree.io/f/${FORMSPREE_FORM_ID}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json' // Critical for avoiding redirects
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Formspree Error:", errorData);
+            throw new Error("Failed to send feedback");
         }
         
         setStep('success');
     } catch (error) {
         console.error("Error sending feedback:", error);
-        // Even on error, we often show success to not frustrate the user, 
-        // or you could show an error state here.
+        // Fallback to success UI so user doesn't feel stuck, but log error for dev
         setStep('success'); 
     }
   };
@@ -150,7 +153,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 flex justify-between">
                         <span>Email (Optional)</span>
-                        <span className="text-xs font-normal text-slate-400 self-center">Leave blank to remain anonymous</span>
+                        <span className="text-xs font-normal text-slate-400 self-center">Leave blank for anonymous</span>
                     </label>
                     <input 
                         type="email"
