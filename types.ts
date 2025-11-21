@@ -5,7 +5,14 @@ export interface UserProfile {
   currency: string;
   industry: string;
   
-  // Detailed Compensation
+  // Newbie / Entry Level Fields
+  isEntryLevel: boolean;
+  education?: string;
+  userSkills?: string;
+  projectDetails?: string; // New field for Thesis/Projects
+  expectedSalary?: number; // New field for expectations
+
+  // Detailed Compensation (Optional for Entry Level)
   monthlyBaseSalary: number;
   monthlyIncentive: number;
   annualProfitShare: number;
@@ -28,14 +35,14 @@ export interface NextRolePrediction {
   probabilityScore: number;
   salaryRange: SalaryRange;
   requiredSkills: string[];
-  switchChecklist: string[]; // New field for job switch reminders
+  switchChecklist: string[]; 
 }
 
 export interface MarketAnalysis {
   currentRoleMarketValue: SalaryRange;
-  paymentStatus: 'Underpaid' | 'Fair' | 'Highly Competitive';
+  paymentStatus: 'Underpaid' | 'Fair' | 'Highly Competitive' | 'Entry Level';
   percentile: number;
-  gapAnalysis: string;
+  gapAnalysis: string; // Used for Project/Skill Analysis for newbies
 }
 
 export interface NegotiationStrategy {

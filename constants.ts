@@ -29,11 +29,16 @@ export const BENEFIT_OPTIONS = [
 ];
 
 export const DEFAULT_PROFILE = {
+  isEntryLevel: false,
   currentRole: '',
   yearsExperience: 0,
   location: '',
   currency: 'BDT',
   industry: 'Design & Creative',
+  education: '',
+  userSkills: '',
+  projectDetails: '',
+  expectedSalary: 0,
   monthlyBaseSalary: 0,
   monthlyIncentive: 0,
   annualProfitShare: 0,
