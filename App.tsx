@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import SalaryForm from './components/SalaryForm';
 import ResultsDashboard from './components/ResultsDashboard';
 import LoadingScreen from './components/LoadingScreen';
+import FeedbackModal from './components/FeedbackModal';
 import { UserProfile, CompensationInsights } from './types';
 import { analyzeCompensation } from './services/geminiService';
 
@@ -10,6 +11,7 @@ const App: React.FC = () => {
   const [results, setResults] = useState<CompensationInsights | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<React.ReactNode | null>(null);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   const handleAnalysis = async (profile: UserProfile) => {
@@ -78,11 +80,20 @@ const App: React.FC = () => {
               <span className="text-2xl font-bold tracking-tight text-slate-900">Compensate<span className="text-indigo-600">AI</span></span>
             </div>
             
-            {results && (
-                <button onClick={handleReset} className="text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors">
-                    New Analysis
+            <div className="flex items-center gap-4">
+                {results && (
+                    <button onClick={handleReset} className="text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors hidden sm:block">
+                        New Analysis
+                    </button>
+                )}
+                <button 
+                    onClick={() => setIsFeedbackOpen(true)}
+                    className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg transition-all border border-transparent hover:border-indigo-100 flex items-center gap-2"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
+                    Feedback
                 </button>
-            )}
+            </div>
         </div>
       </nav>
 
@@ -136,6 +147,13 @@ const App: React.FC = () => {
           Developed by <a href="https://www.linkedin.com/in/aggalib/" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition-colors underline decoration-indigo-200 hover:decoration-indigo-600">ahilgalib</a>
         </p>
       </footer>
+
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={isFeedbackOpen} 
+        onClose={() => setIsFeedbackOpen(false)} 
+      />
+
     </div>
   );
 };
